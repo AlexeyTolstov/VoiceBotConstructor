@@ -20,7 +20,7 @@ vb = Bot(name="Маришка")
 
 @vb.check_command(["привет"], name_cmd="hello")
 def hello():
-    print("Привет!")
+    vb.say("Привет!")
 
 vb.start()
 ```
