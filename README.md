@@ -14,7 +14,7 @@ pip install -r requirements.txt
 ### Примеры использования:
 
 ``` python
-from voice_bot import Bot
+from VoiceBotConstructor import Bot
 
 vb = Bot(name="Маришка")
 
