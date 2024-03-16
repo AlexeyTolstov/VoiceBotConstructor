@@ -1,5 +1,6 @@
 from .bot import Bot
 from .command_item import CommandItem
+from .num2word import num2word
 
 __author__ = "Alex Tolstov"
 __version__ = "0.1"
