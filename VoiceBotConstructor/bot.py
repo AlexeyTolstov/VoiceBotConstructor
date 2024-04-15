@@ -4,11 +4,15 @@ import pygame
 from gtts import gTTS
 import speech_recognition as sr
 
-from os import remove
+from os import remove, path
 from threading import Thread
 
+import json
+
+
 class Bot():
-    def __init__(self, name):
+    def __init__(self, name,
+                configuration_file="config.json"):
         pygame.mixer.init()
 
         if isinstance(name, str):
@@ -17,11 +21,27 @@ class Bot():
             self.names = name
         else:
             raise TypeError("ERROR: variable `name` must be str or list")
-        
+
+
         self._commands = []
 
         self.isPlaying = False
         self.audio_filename = None
+        self.configuration_file = configuration_file
+
+        if not path.isfile(configuration_file):
+            self.config = {
+                "user_name": None,
+                "voice_bot_name": self.names,
+                "todo_list": [],
+                "alarms": []
+            }
+
+            with open("config.json", "w") as file:
+                json.dump(self.config, file)
+        
+        self.config = json.load("config.json")
+
 
     def check_command(self, phrases: list, name_cmd: str):
         def decorator(func):
