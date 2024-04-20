@@ -8,6 +8,7 @@ from os import remove, path
 from threading import Thread
 
 import json
+from inspect import signature
 
 
 class Bot():
@@ -40,8 +41,8 @@ class Bot():
             with open("config.json", "w") as file:
                 json.dump(self.config, file)
         
-        self.config = json.load("config.json")
-
+        with open("config.json", "r") as file:
+            self.config = json.load(file)
 
     def check_command(self, phrases: list, name_cmd: str):
         def decorator(func):
@@ -50,6 +51,14 @@ class Bot():
                                    func=func)
             self._commands.append(cmd_item)
         return decorator
+
+
+    def add_command(self, phrases: list, name_cmd: str, func):
+        cmd_item = CommandItem(name=name_cmd,
+                                phrases=phrases,
+                                func=func)
+        self._commands.append(cmd_item)
+
 
     def start(self):
         self.recognition_thread_ = Thread(target=self.recognition_thread)
@@ -75,7 +84,7 @@ class Bot():
                 pygame.mixer.music.unload()
                 remove(self.audio_filename)
                 self.isPlaying = False
-    
+
     def recognize_speech(self):
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
@@ -93,12 +102,20 @@ class Bot():
         for name in self.names:
             if not name.lower() in text:
                 continue
+
             for item in self._commands:
                 for phrase in item.phrases:
                     if phrase.lower() in text:
                         self.isPlaying = False
-                        item.func()
+                        if len(signature(item.func).parameters):
+                            item.func(text)
+                        else:
+                            item.func()
                         break
+                else:
+                    continue
+                break
+            break
 
     def say(self, text: str):
         self.audio_filename = "temp_audio.mp3"
