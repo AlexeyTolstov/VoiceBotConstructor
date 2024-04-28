@@ -1,8 +1,11 @@
 import pygame.mixer as mxr
 from gtts import gTTS
 from os import remove
+from os.path import exists
 from enum import Enum
 
+from re import findall
+from VoiceBotConstructor.num2word import num2word
 
 class AudioPlayerStates(Enum):
     PLAY = 1
@@ -23,16 +26,16 @@ class AudioPlayer:
         self.current_file = file_name
 
     def play(self):
-        if self.state == AudioPlayerStates.PLAY:
-            mxr.music.play()
+        mxr.music.play()
 
-            while mxr.music.get_busy():
-                self.recog_func()
+        while mxr.music.get_busy():
+            self.recog_func()
             
-            mxr.music.unload()
-            if self.current_file:
-                remove(self.current_file)
-            self.state = AudioPlayerStates.STOP
+        mxr.music.unload()
+
+        if self.current_file and exists(self.current_file):
+            remove(self.current_file)
+        self.state = AudioPlayerStates.STOP
 
     def unpause(self):
         self.state = AudioPlayerStates.PLAY
@@ -53,7 +56,17 @@ class AudioPlayer:
             remove(self.current_file)
 
     def say(self, text: str, audio_filename: str="voice.mp3"):
+        if self.state == AudioPlayerStates.PLAY or self.state == AudioPlayerStates.PAUSE:
+            self.stop()
+        
+        for n in set(findall(r'\d+', text)):
+            text = text.replace(n, num2word(int(n)))
+
         tts = gTTS(text=text, lang='ru')
+
+        if exists(audio_filename):
+            remove(audio_filename)
+        
         tts.save(audio_filename)
         self.load(audio_filename)
         self.play()

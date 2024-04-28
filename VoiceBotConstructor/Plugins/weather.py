@@ -20,7 +20,11 @@ def get_weather_info(city: str, token: str, lang: str="ru") -> WeatherInfo:
         f"http://api.openweathermap.org/data/2.5/find?q={city}&APPID={token}",
             params={'lang': lang, 'units': 'metric', 'type': 'like', })
     
-    return WeatherInfo(res.json()["list"][0])
+    data = res.json()["list"]
+    
+    if len(data):
+        return WeatherInfo(data[0])
+    return None
 
 
 if __name__ == "__main__":

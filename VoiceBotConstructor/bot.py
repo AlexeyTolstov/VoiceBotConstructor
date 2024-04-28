@@ -90,4 +90,5 @@ class Bot():
             break
     
     def say(self, text: str, audio_filename: str="voice.mp3"):
+        print(text.capitalize())
         self.audio_player.say(text, audio_filename)

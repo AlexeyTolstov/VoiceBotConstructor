@@ -38,4 +38,4 @@ def get_day_of_week(date: datetime):
 
 if __name__ == "__main__":
     now = get_datetime_now()
-    print(get_day_of_week(now))
+    print(now.day, month_lst[now.month])
