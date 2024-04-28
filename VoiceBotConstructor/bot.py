@@ -6,7 +6,7 @@ import speech_recognition as sr
 import json
 from os import remove, path
 from inspect import signature
-
+import time
 
 class Bot():
     def __init__(self, name,
@@ -31,10 +31,10 @@ class Bot():
                 "alarms": []
             }
 
-            with open("config.json", "w") as file:
+            with open(self.configuration_file, "w", encoding="utf-8") as file:
                 json.dump(self.config, file)
         
-        with open("config.json", "r") as file:
+        with open(self.configuration_file, "r", encoding="utf-8") as file:
             self.config = json.load(file)
 
     def check_command(self, phrases: list, name_cmd: str):
@@ -44,7 +44,7 @@ class Bot():
                                    func=func)
             self._commands.append(cmd_item)
         return decorator
-
+    
 
     def add_command(self, phrases: list, name_cmd: str, func):
         cmd_item = CommandItem(name=name_cmd,
@@ -55,7 +55,7 @@ class Bot():
 
     def start(self):
         while True:
-            self.recognize_speech()
+            self.execute_command()
 
     def recognize_speech(self):
         recognizer = sr.Recognizer()
@@ -65,30 +65,35 @@ class Bot():
             text = recognizer.recognize_google(audio, language="ru-RU").lower()
             if text:
                 print(text)
-                self.execute_command(text)
-                
+                return text 
         except Exception as ex:
             print(ex)
     
-    def execute_command(self, text):
-        for name in self.names:
-            if not name.lower() in text:
-                continue
+    def execute_command(self):
+        text = self.recognize_speech()
 
-            for item in self._commands:
-                for phrase in item.phrases:
-                    if phrase.lower() in text:
-                        self.isPlaying = False
-                        if len(signature(item.func).parameters):
-                            item.func(text)
-                        else:
-                            item.func()
-                        break
-                else:
+        if text:
+            for name in set(self.names):
+                if not name.lower() in text:
                     continue
+
+                for item in set(self._commands):
+                    for phrase in set(item.phrases):
+                        if phrase.lower() in text:
+                            if len(signature(item.func).parameters):
+                                item.func(text)
+                            else:
+                                item.func()
+                            break
+                    else:
+                        continue
+                    break
                 break
-            break
     
     def say(self, text: str, audio_filename: str="voice.mp3"):
         print(text.capitalize())
         self.audio_player.say(text, audio_filename)
+    
+    def update_config(self):
+        with open(self.configuration_file, "w", encoding="utf-8") as file:
+            json.dump(self.config, file)

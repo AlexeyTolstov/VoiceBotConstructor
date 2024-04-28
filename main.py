@@ -24,8 +24,7 @@ def time():
 @vb.check_command(["погода", "температура"], name_cmd="weather")
 def time(text: str):
     city = search_city(crop_phrase(text, ["погода", "температура"], vb.names))
-    weather_info = get_weather_info(city,
-                        "")
+    weather_info = get_weather_info(city, "YOUR_TOKEN")
     
     if weather_info is None:
         vb.say("Город {} не найден".format(city))
@@ -50,5 +49,51 @@ def get_today():
 @vb.check_command(["анекдот"], name_cmd="anecdotes")
 def get_today():
     vb.say(get_anecdote())
+
+
+@vb.check_command(["список дел"], name_cmd="todo list")
+def show_todo():
+    todo = vb.config["todo_list"]
+    if todo:
+        vb.say("У вас есть {} записи. ".format(len(todo)) + \
+               "\n".join(todo))
+    else:
+        vb.say("Список дел пуст")
+
+
+@vb.check_command(["добавить задачу"], name_cmd="add todo list")
+def show_todo():
+    vb.say("Какую задачу вы хотите добавить?")
+    
+    text = ""
+    while not text:
+        text = vb.recognize_speech()
+        if text == "отмена":
+            vb.say("Добавление задачи отменено")
+            break
+        
+    else:
+        vb.config["todo_list"].append(text)
+        vb.update_config()
+        vb.say("Ваша задача успешно добавленна")
+
+
+@vb.check_command(["удалить задачу"], name_cmd="delete todo list")
+def delete_todo():
+    vb.say("Какую задачу вы хотите удалить?")
+    
+    text = ""
+    while not text:
+        text = vb.recognize_speech()
+        if text == "отмена":
+            vb.say("Удаление задачи отменено")
+            break
+    else:
+        if text == "один":
+            text = "1"
+        vb.config["todo_list"].pop(int(text)-1)
+        vb.update_config()
+        vb.say("Ваша задача успешно удалена")
+
 
 vb.start()
