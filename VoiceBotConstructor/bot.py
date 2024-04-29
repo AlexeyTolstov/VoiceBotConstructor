@@ -18,7 +18,7 @@ class Bot():
         else:
             raise TypeError("ERROR: variable `name` must be str or list")
 
-        self.audio_player = AudioPlayer(recog_func=self.recognize_speech)
+        self.audio_player = AudioPlayer(recog_func=self.execute_command)
 
         self._commands = []
         self.configuration_file = configuration_file
@@ -54,12 +54,16 @@ class Bot():
 
 
     def start(self):
+        print("Bot started succesfull")
         while True:
             self.execute_command()
 
     def recognize_speech(self):
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
+            recognizer.pause_threshold = 0.5
+            recognizer.adjust_for_ambient_noise(source, duration=0.3)
+             
             audio = recognizer.listen(source)
         try:
             text = recognizer.recognize_google(audio, language="ru-RU").lower()
@@ -71,24 +75,16 @@ class Bot():
     
     def execute_command(self):
         text = self.recognize_speech()
-
         if text:
-            for name in set(self.names):
-                if not name.lower() in text:
-                    continue
-
+            if any((name.lower() in text for name in set(self.names))):
                 for item in set(self._commands):
-                    for phrase in set(item.phrases):
-                        if phrase.lower() in text:
-                            if len(signature(item.func).parameters):
-                                item.func(text)
-                            else:
-                                item.func()
-                            break
-                    else:
-                        continue
-                    break
-                break
+                    if any((phrase.lower() in text for phrase in set(item.phrases))):
+                        if len(signature(item.func).parameters):
+                            item.func(text)
+                        else:
+                            item.func()
+                        break
+            
     
     def say(self, text: str, audio_filename: str="voice.mp3"):
         print(text.capitalize())

@@ -7,6 +7,7 @@ from enum import Enum
 from re import findall
 from VoiceBotConstructor.num2word import num2word
 
+
 class AudioPlayerStates(Enum):
     PLAY = 1
     STOP = 2
