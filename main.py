@@ -1,6 +1,7 @@
 from VoiceBotConstructor.bot import Bot
 from VoiceBotConstructor.filters import crop_phrase, search_city
 from VoiceBotConstructor.num2word import num2word
+from VoiceBotConstructor.generate_command import generate_commands
 
 from VoiceBotConstructor.Plugins.time_data import get_datetime_now, get_day_of_week, month_lst
 from VoiceBotConstructor.Plugins.weather import get_weather_info
@@ -60,7 +61,7 @@ def show_todo():
         vb.say("Список дел пуст")
 
 
-@vb.check_command(["добавь задачу", "добавь задачи", "добавь заметку", "добавь заметки", "добавь запись", "добавь записи"], name_cmd="add todo list")
+@vb.check_command(generate_commands([["добавь", "добавить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]]), name_cmd="add todo list")
 def add_todo():
     vb.say("Какую запись вы хотите добавить?")
     
@@ -80,7 +81,7 @@ def add_todo():
         vb.say("Ваша запись успешно добавленна")
 
 
-@vb.check_command(["удали задачу", "удали задачи", "удали заметку", "удали заметки", "удали запись", "удали записи"], name_cmd="delete todo list")
+@vb.check_command(generate_commands([["удали", "удалить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]]), name_cmd="delete todo list")
 def delete_todo():
     vb.say("Под каким номером вы хотите удалить запись?")
     
