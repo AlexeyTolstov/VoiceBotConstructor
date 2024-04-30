@@ -1,7 +1,6 @@
 from VoiceBotConstructor.command_item import CommandItem
 from VoiceBotConstructor.audio_player import AudioPlayer
-
-import speech_recognition as sr
+from VoiceBotConstructor.listen_microphone import recognition_speech
 
 import json
 from os import remove, path
@@ -18,11 +17,15 @@ class Bot():
         else:
             raise TypeError("ERROR: variable `name` must be str or list")
 
-        self.audio_player = AudioPlayer(recog_func=self.execute_command)
+        self.audio_player = AudioPlayer(vb_name=self.names,
+                                        recognition_func=recognition_speech)
 
         self._commands = []
         self.configuration_file = configuration_file
         
+        self.isSay = False
+        self.s_time = None
+
         if not path.isfile(configuration_file):
             self.config = {
                 "user_name": None,
@@ -57,38 +60,44 @@ class Bot():
         print("Bot started succesfull")
         while True:
             self.execute_command()
+    
+    def recognize_phrase(self):
+        text = ""
+        while True:
+            t_text = recognition_speech()
+            
+            if not t_text:
+                return text
+            text = t_text
 
-    def recognize_speech(self):
-        recognizer = sr.Recognizer()
-        with sr.Microphone() as source:
-            recognizer.pause_threshold = 0.5
-            recognizer.adjust_for_ambient_noise(source, duration=0.3)
-             
-            audio = recognizer.listen(source)
-        try:
-            text = recognizer.recognize_google(audio, language="ru-RU").lower()
-            if text:
-                print(text)
-                return text 
-        except Exception as ex:
-            print(ex)
     
     def execute_command(self):
-        text = self.recognize_speech()
-        if text:
-            if any((name.lower() in text for name in set(self.names))):
-                for item in set(self._commands):
-                    if any((phrase.lower() in text for phrase in set(item.phrases))):
-                        if len(signature(item.func).parameters):
-                            item.func(text)
-                        else:
-                            item.func()
-                        break
+        text = self.recognize_phrase()
+        if text and any((name.lower() in text for name in set(self.names))):
+            print(text)
+
+            for item in set(self._commands):
+                if any((phrase.lower() in text for phrase in set(item.phrases))):
+                    if len(signature(item.func).parameters):
+                        item.func(text)
+                    else:
+                        item.func()
+                    
+                    self.isSay = False
+                    self.s_time = None
+                    break
+        else:
+            if self.isSay:
+                if (time.time() - self.s_time) > 3:
+                    self.isSay = False
+                    self.s_time = None
+                    self.audio_player.unpause()
             
     
     def say(self, text: str, audio_filename: str="voice.mp3"):
         print(text.capitalize())
-        self.audio_player.say(text, audio_filename)
+        self.isSay = self.audio_player.say(text, audio_filename)
+        self.s_time = time.time()
     
     def update_config(self):
         with open(self.configuration_file, "w", encoding="utf-8") as file:

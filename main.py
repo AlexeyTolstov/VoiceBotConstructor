@@ -64,9 +64,9 @@ def show_todo():
 def add_todo():
     vb.say("Какую запись вы хотите добавить?")
     
-    text = ""
+    text = "" 
     while not text:
-        text = vb.recognize_speech()
+        text = vb.recognize_phrase()
 
         if not text:
             continue
@@ -86,7 +86,7 @@ def delete_todo():
     
     text = ""
     while not text:
-        text = vb.recognize_speech()
+        text = vb.recognize_phrase()
 
         if not text:
             continue

@@ -15,28 +15,33 @@ class AudioPlayerStates(Enum):
 
 
 class AudioPlayer:
-    def __init__(self, recog_func):
+    def __init__(self, recognition_func, vb_name: list):
         mxr.init()
         self.state = AudioPlayerStates.STOP  
         self.current_file = None
-        self.recog_func = recog_func
+        self.recognition_func = recognition_func
+        self.names = vb_name
 
     def load(self, file_name: str):
         mxr.music.load(file_name)
         self.state = AudioPlayerStates.PLAY
         self.current_file = file_name
 
-    def play(self):
+    def play(self) -> bool:
         mxr.music.play()
 
         while mxr.music.get_busy():
-            self.recog_func()
+            text = self.recognition_func()
+            if any((name.lower() in text for name in set(self.names))):
+                self.pause()
+                return True
             
         mxr.music.unload()
 
         if self.current_file and exists(self.current_file):
             remove(self.current_file)
         self.state = AudioPlayerStates.STOP
+        return False
 
     def unpause(self):
         self.state = AudioPlayerStates.PLAY
@@ -70,4 +75,4 @@ class AudioPlayer:
         
         tts.save(audio_filename)
         self.load(audio_filename)
-        self.play()
+        return self.play()
