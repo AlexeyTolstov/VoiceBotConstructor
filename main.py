@@ -25,13 +25,14 @@ def time():
 @vb.check_command(["погода", "температура"], name_cmd="weather")
 def time(text: str):
     city = search_city(crop_phrase(text, ["погода", "температура"], vb.names))
-    weather_info = get_weather_info(city, "YOUR_TOKEN")
+    weather_info = get_weather_info(city, "ff768c603f205dbead4885de7cb71eb2")
     
     if weather_info is None:
         vb.say("Город {} не найден".format(city))
     else:
-        vb.say("В городе {} сейчас {} градусов. ".format(city.title(), int(weather_info.temp)) +
-           "Ощущается как {}.".format(int(weather_info.feel_like)))
+        vb.say("В городе {} сейчас {} градусов. ".format(city.title(), weather_info.temp) +
+           "Ощущается как {}. ".format(weather_info.feel_like) +
+           "{}".format(weather_info.description))
 
 
 @vb.check_command(["день недели"], name_cmd="day of week")

@@ -73,10 +73,10 @@ class Bot():
     
     def execute_command(self):
         text = self.recognize_phrase()
+        print(text)
         if text and any((name.lower() in text for name in set(self.names))):
-            print(text)
-
             for item in set(self._commands):
+                print(text, item)
                 if any((phrase.lower() in text for phrase in set(item.phrases))):
                     if len(signature(item.func).parameters):
                         item.func(text)

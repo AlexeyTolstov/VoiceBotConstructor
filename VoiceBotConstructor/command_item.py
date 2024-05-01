@@ -5,3 +5,6 @@ class CommandItem:
         self.name = name
         self.phrases = phrases
         self.func = func
+    
+    def __str__(self) -> str:
+        return "Name command: {} \nPhrases: {}".format(self.name, self.phrases)
