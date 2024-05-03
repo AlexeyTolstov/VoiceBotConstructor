@@ -6,10 +6,11 @@ from VoiceBotConstructor.generate_command import generate_commands
 from VoiceBotConstructor.Plugins.time_data import get_datetime_now, get_day_of_week, month_lst
 from VoiceBotConstructor.Plugins.weather import get_weather_info
 from VoiceBotConstructor.Plugins.games.anecdotes import get_anecdote
+from VoiceBotConstructor.Plugins.ya_music import YaMusic
 
 
 vb = Bot(name="Маришка")
-
+ya_mus = YaMusic() # YOUR TOKEN HERE
 
 @vb.check_command(["привет"], name_cmd="hello")
 def hello():
@@ -23,9 +24,9 @@ def time():
 
 
 @vb.check_command(["погода", "температура"], name_cmd="weather")
-def time(text: str):
+def weather(text: str):
     city = search_city(crop_phrase(text, ["погода", "температура"], vb.names))
-    weather_info = get_weather_info(city, "ff768c603f205dbead4885de7cb71eb2")
+    weather_info = get_weather_info(city, "YOUR_TOKEN")
     
     if weather_info is None:
         vb.say("Город {} не найден".format(city))
@@ -80,6 +81,40 @@ def add_todo():
         vb.config["todo_list"].append(text)
         vb.update_config()
         vb.say("Ваша запись успешно добавленна")
+
+
+@vb.check_command(generate_commands([["включи", "поставь", "вруби"], ["песню", "трэк", ""]]), name_cmd="track")
+def play_music(text: str):
+    title = crop_phrase(text,
+          cmd_phrases=generate_commands([["включи", "поставь", "вруби"], ["песню", "трэк", ""]]),
+          voice_bot=vb.names)
+    
+    file_name: str = "music.mp3"
+    ya_mus.search_track(title=title).download(file_name)
+
+    vb.play_audio(file_name)
+
+
+@vb.check_command(["пауза"], name_cmd="pause")
+def pause_music():
+    vb.audio_player.pause()
+
+
+@vb.check_command(["продолжи", "продолжить"], name_cmd="continue")
+def pause_music():
+    vb.audio_player.unpause()
+
+
+@vb.check_command(["погромче"], name_cmd="turn up")
+def turn_up():
+    vb.audio_player.turn_up()
+    vb.audio_player.unpause()
+
+
+@vb.check_command(["потише"], name_cmd="turn down")
+def turn_down():
+    vb.audio_player.turn_down()
+    vb.audio_player.unpause()
 
 
 @vb.check_command(generate_commands([["удали", "удалить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]]), name_cmd="delete todo list")

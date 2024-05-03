@@ -7,7 +7,7 @@ def crop_phrase(msg: str, cmd_phrases: list, voice_bot: list):
             msg = msg.replace(cmd_phrase.lower(), "")
             break
     
-    return msg
+    return msg.lstrip()
 
 def search_city(msg: str):
     msg = msg.lstrip()[2:] # в `городе`

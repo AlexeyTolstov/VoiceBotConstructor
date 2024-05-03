@@ -21,11 +21,20 @@ class AudioPlayer:
         self.current_file = None
         self.recognition_func = recognition_func
         self.names = vb_name
+        self.current_value = 0.5
 
     def load(self, file_name: str):
         mxr.music.load(file_name)
         self.state = AudioPlayerStates.PLAY
         self.current_file = file_name
+
+    def turn_up(self):
+        self.current_value += 0.1
+        self.set_volume()
+    
+    def turn_down(self):
+        self.current_value -= 0.1
+        self.set_volume()
 
     def play(self) -> bool:
         mxr.music.play()
@@ -51,8 +60,9 @@ class AudioPlayer:
         self.state = AudioPlayerStates.PAUSE
         mxr.music.pause()
 
-    def set_volume(self, value: float):
-        mxr.music.set_volume(value)
+    def set_volume(self):
+        self.current_value = min(max(0, self.current_value), 1)
+        mxr.music.set_volume(self.current_value)
 
     def stop(self):
         mxr.music.stop()
