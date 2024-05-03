@@ -7,6 +7,7 @@ from VoiceBotConstructor.Plugins.time_data import get_datetime_now, get_day_of_w
 from VoiceBotConstructor.Plugins.weather import get_weather_info
 from VoiceBotConstructor.Plugins.games.anecdotes import get_anecdote
 from VoiceBotConstructor.Plugins.ya_music import YaMusic
+from VoiceBotConstructor.Plugins.open_programs import Website, Program
 
 
 vb = Bot(name="Маришка")
@@ -140,6 +141,24 @@ def delete_todo():
                 break
         else:
             vb.say("Запись не удалось найти")
+
+
+@vb.check_command(["открой"], name_cmd="open program/website")
+def open_programm(text):
+    programs = [
+        Website("Github", "https://github.com/", ["гид хаб", "гитхаб", "гидхаб"]),
+        Program("Android Studio", '"C:/Program Files/Android/Android Studio/bin/studio64.exe"',\
+                generate_commands([["андроид", "андроэд", "андрей", "андреа"], ["студио", "студия", "студию"]])),
+        # Write here your programm and website
+    ]
+
+    for program in programs:
+        if any((p in text for p in program.phrases)):
+            vb.say(f"Открываю {program.name}")
+            program.open()
+            break
+    else:
+        vb.say("Не нашлась программа")
 
 
 vb.start()
