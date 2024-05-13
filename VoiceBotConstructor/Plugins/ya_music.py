@@ -10,7 +10,10 @@ class YaMusic:
         return self.__client.users_likes_tracks()[n].fetch_track()
     
     def search_track(self, title: str):
-        return self.__client.search(text=title).tracks.results[0]
+        data = self.__client.search(text=title).tracks.results
+        if len(data):
+            return data[0]
+        return None  
 
 
 

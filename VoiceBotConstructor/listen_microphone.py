@@ -21,3 +21,6 @@ def recognition_speech():
     data = stream.read(16000)
     if len(data): 
         return eval(rec.Result())["text"] if rec.AcceptWaveform(data) else eval(rec.PartialResult())["partial"]
+if __name__ == "__main__":
+    while True:
+        print(recognition_speech())

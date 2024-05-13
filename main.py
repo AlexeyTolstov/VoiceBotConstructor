@@ -1,4 +1,4 @@
-from VoiceBotConstructor.bot import Bot
+from VoiceBotConstructor.bot import Bot, isSimilar 
 from VoiceBotConstructor.filters import crop_phrase, search_city
 from VoiceBotConstructor.num2word import num2word
 from VoiceBotConstructor.generate_command import generate_commands
@@ -10,7 +10,7 @@ from VoiceBotConstructor.Plugins.ya_music import YaMusic
 from VoiceBotConstructor.Plugins.open_programs import Website, Program
 
 
-vb = Bot(name="Маришка")
+vb = Bot(name=["Маришка"])
 ya_mus = YaMusic() # YOUR TOKEN HERE
 
 @vb.check_command(["привет"], name_cmd="hello")
@@ -26,28 +26,31 @@ def time():
 
 @vb.check_command(["погода", "температура"], name_cmd="weather")
 def weather(text: str):
-    city = search_city(crop_phrase(text, ["погода", "температура"], vb.names))
-    weather_info = get_weather_info(city, "YOUR_TOKEN")
+    data = crop_phrase(text, ["погода", "температура"], vb.names)
+    if data:
+        city = search_city(data)
+    else:
+        city = vb.config["city"]
+
+        if not city:
+            vb.say("Извините, но я не поняла какой город, повторите пожалуйста")
+            return
+        
+    weather_info = get_weather_info(city, "") # YOUR TOKEN
     
     if weather_info is None:
         vb.say("Город {} не найден".format(city))
     else:
-        vb.say("В городе {} сейчас {} градусов. ".format(city.title(), weather_info.temp) +
-           "Ощущается как {}. ".format(weather_info.feel_like) +
+        vb.say("В городе {} сейчас {} градусов. ".format(city.title(), int(weather_info.temp)) +
+           "Ощущается как {}. ".format(int(weather_info.feel_like)) +
            "{}".format(weather_info.description))
-
-
-@vb.check_command(["день недели"], name_cmd="day of week")
-def day_of_week():
-    time_data = get_datetime_now()
-    vb.say("Сегодня {}".format(get_day_of_week(time_data)))
 
 
 @vb.check_command(["число", "день"], name_cmd="day now")
 def get_today():
     time_data = get_datetime_now()
-    
-    vb.say("Сегодня {} {}".format(time_data.day, month_lst[time_data.month]))
+    vb.say("Сегодня {} {}.".format(time_data.day, month_lst[time_data.month]) +
+           f" {get_day_of_week(time_data)}")
 
 
 @vb.check_command(["анекдот"], name_cmd="anecdotes")
@@ -64,7 +67,7 @@ def show_todo():
         vb.say("Список дел пуст")
 
 
-@vb.check_command(generate_commands([["добавь", "добавить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]]), name_cmd="add todo list")
+@vb.check_command(generate_commands(["добавь", "добавить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]), name_cmd="add todo list")
 def add_todo():
     vb.say("Какую запись вы хотите добавить?")
     
@@ -84,16 +87,25 @@ def add_todo():
         vb.say("Ваша запись успешно добавленна")
 
 
-@vb.check_command(generate_commands([["включи", "поставь", "вруби"], ["песню", "трэк", ""]]), name_cmd="track")
+@vb.check_command(generate_commands(["включи", "поставь", "вруби"], ["песню", "трэк"]), name_cmd="track")
 def play_music(text: str):
+    print("Поиск песни...")
     title = crop_phrase(text,
-          cmd_phrases=generate_commands([["включи", "поставь", "вруби"], ["песню", "трэк", ""]]),
+          cmd_phrases=generate_commands(["включи", "поставь", "вруби"], ["песню", "трэк"]),
           voice_bot=vb.names)
+    track = None
     
-    file_name: str = "music.mp3"
-    ya_mus.search_track(title=title).download(file_name)
-
-    vb.play_audio(file_name)
+    try:
+        track = ya_mus.search_track(title=title)
+        file_name: str = "music.mp3"
+    except: pass
+    finally:
+        if track:
+            vb.audio_player.stop()
+            track.download(file_name)
+            vb.play_audio(file_name)
+        else:
+            vb.say("Не нашлась песня")
 
 
 @vb.check_command(["пауза"], name_cmd="pause")
@@ -118,7 +130,7 @@ def turn_down():
     vb.audio_player.unpause()
 
 
-@vb.check_command(generate_commands([["удали", "удалить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]]), name_cmd="delete todo list")
+@vb.check_command(generate_commands(["удали", "удалить"], ["задачу", "задачи", "заметку", "заметки", "записи", "запись"]), name_cmd="delete todo list")
 def delete_todo():
     vb.say("Под каким номером вы хотите удалить запись?")
     
@@ -146,14 +158,15 @@ def delete_todo():
 @vb.check_command(["открой"], name_cmd="open program/website")
 def open_programm(text):
     programs = [
-        Website("Github", "https://github.com/", ["гид хаб", "гитхаб", "гидхаб"]),
+        Website("YouTube", "https://www.youtube.com/", ["ютуб"]),
+        Website("GitHub", "https://github.com/AlexeyTolstov", ["гидхаб", "гит хаб"]),
         Program("Android Studio", '"C:/Program Files/Android/Android Studio/bin/studio64.exe"',\
-                generate_commands([["андроид", "андроэд", "андрей", "андреа"], ["студио", "студия", "студию"]])),
+                generate_commands(["андроид", "андроэд", "андрей", "андреа"], ["студио", "студия", "студию"])),
         # Write here your programm and website
     ]
-
+    text = crop_phrase(text, ["открой"], vb.names)
     for program in programs:
-        if any((p in text for p in program.phrases)):
+        if any((isSimilar(text, p) for p in program.phrases)):
             vb.say(f"Открываю {program.name}")
             program.open()
             break

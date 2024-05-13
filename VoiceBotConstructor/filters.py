@@ -1,19 +1,26 @@
 def crop_phrase(msg: str, cmd_phrases: list, voice_bot: list):
+    msg = msg.lower()
     for name in voice_bot:
-        msg = msg.lower().replace(name.lower(), "")
+        if name in msg:
+            msg = msg[msg.index(name) + len(name):]
+            break
     
     for cmd_phrase in set(cmd_phrases):
         if cmd_phrase in msg:
-            msg = msg.replace(cmd_phrase.lower(), "")
+            msg = msg[msg.index(cmd_phrase) + len(cmd_phrase):]
             break
     
     return msg.lstrip()
 
 def search_city(msg: str):
-    msg = msg.lstrip()[2:] # в `городе`
-    if "-" in msg: l = msg.split("-")
-    else: l = msg.split(" ")
+    l = msg.lstrip()
+    if l[0] == "в":
+        l = l[2:]
 
-    l[0] = l[0][:-1]
+    if l[-1] == "е":
+        l = l[:-1]
+    
+    return l
 
-    return " ".join(l)
+if __name__ == "__main__":
+    print(search_city("Бийске"))

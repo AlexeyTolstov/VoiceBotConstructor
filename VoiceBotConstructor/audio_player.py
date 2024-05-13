@@ -68,7 +68,7 @@ class AudioPlayer:
         mxr.music.stop()
         mxr.music.unload()
 
-        if self.current_file:
+        if self.current_file and exists(self.current_file):
             remove(self.current_file)
 
     def say(self, text: str, audio_filename: str="voice.mp3"):

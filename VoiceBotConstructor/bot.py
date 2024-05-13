@@ -7,6 +7,13 @@ from os import remove, path
 from inspect import signature
 import time
 
+from difflib import SequenceMatcher
+
+
+def isSimilar(str_1: str, str_2: str, p: float = .3):
+    return SequenceMatcher(a=str_1, b=str_2).ratio() > p
+
+
 class Bot():
     def __init__(self, name,
                 configuration_file="config.json"):
@@ -31,7 +38,8 @@ class Bot():
                 "user_name": None,
                 "voice_bot_name": self.names,
                 "todo_list": [],
-                "alarms": []
+                "alarms": [],
+                "city": None
             }
 
             with open(self.configuration_file, "w", encoding="utf-8") as file:
@@ -45,7 +53,11 @@ class Bot():
             cmd_item = CommandItem(name=name_cmd,
                                    phrases=phrases,
                                    func=func)
-            self._commands.append(cmd_item)
+            
+            if signature(cmd_item.func).parameters:
+                self._commands.insert(0, cmd_item)
+            else:
+                self._commands.append(cmd_item)
         return decorator
     
 
@@ -73,10 +85,13 @@ class Bot():
     
     def execute_command(self):
         text = self.recognize_phrase()
-        if text and any((name.lower() in text for name in set(self.names))):
-            print(text)
-            for item in set(self._commands):
-                if any((phrase.lower() in text for phrase in set(item.phrases))):
+        
+        if not text: return
+        
+        print(text)
+        if any((name.lower() in text for name in set(self.names))):
+            for item in tuple(self._commands):
+                if any((phrase.lower() + " " in text + " " for phrase in set(item.phrases))):
                     if len(signature(item.func).parameters):
                         item.func(text)
                     else:
